@@ -10,5 +10,5 @@ Gem::Specification.new do |s|
   s.license = "MIT"
   s.files = Dir["{bin,lib}/**/*", "README.md"]
   s.require_paths = ["lib"]
-  s.executables ["ssd"]
+  s.executables = ["ssd"]
 end
