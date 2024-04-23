@@ -8,7 +8,7 @@ if (supported_tasks = (Deploy::SUPPORTED_TASKS & ARGV)).any?
   end
 else
   puts 'Supported tasks are:'
-  puts Deploy::SUPPORTED_TASKS.map do |task|
-    "  - #{task}"
+  Deploy::SUPPORTED_TASKS.map do |task|
+    puts "  - #{task}"
   end
 end
