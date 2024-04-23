@@ -7,6 +7,7 @@ Gem::Specification.new do |s|
   s.authors = ["Petr Radouš"]
   s.email = "darroue@gmail.com"
   s.files = ["lib/deploy.rb"]
+  s.executables << "ssd"
   s.homepage = "https://petr-radous.cz"
   s.license = "MIT"
 end
