@@ -1,3 +1,7 @@
+require "dotenv"
+require "securerandom"
+require "yaml"
+
 class Deploy
   DEPLOY_SERVER = ENV.fetch("DEPLOY_SERVER", nil)
   IMAGE_REPOSITORY_PREFIX = ENV.fetch("IMAGE_REPOSITORY_PREFIX", nil)
