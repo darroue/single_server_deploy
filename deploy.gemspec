@@ -1,4 +1,5 @@
 Gem::Specification.new do |s|
+  s.required_ruby_version = "3.3.0"
   s.name = "deploy"
   s.version = "0.0.0"
   s.summary = "Builds and deploys application"
