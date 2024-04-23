@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require 'deploy'
+
+if (supported_tasks = (Deploy::SUPPORTED_TASKS & ARGV)).any?
+  supported_tasks.each do |task|
+    Deploy.new.send(task)
+  end
+else
+  puts 'Supported tasks are:'
+  puts Deploy::SUPPORTED_TASKS
+end

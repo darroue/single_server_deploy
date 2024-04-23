@@ -126,24 +126,3 @@ class Deploy
     }
   end
 end
-
-if (supported_tasks = (Deploy::SUPPORTED_TASKS & ARGV)).any?
-  supported_tasks.each do |task|
-    Deploy.new.send(task)
-  end
-else
-  puts 'Supported tasks are:'
-  puts Deploy::SUPPORTED_TASKS
-end
-
-# postgres
-# backup
-# proxy
-# doc_box
-
-# deploy
-#   name
-#   backup
-#   build --push
-#   .env.production
-#   up --detach --pull always
