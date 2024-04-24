@@ -51,6 +51,10 @@ class Deploy
     File.read('.ruby-version').strip
   end
 
+  def node_version
+    File.read('.nvmrc').strip
+  end
+
   def set_envs
     @envs['PROJECT_NAME'] ||= project_name
     @envs['POSTGRES_DB'] ||= postgres_db
@@ -108,7 +112,10 @@ class Deploy
           'build' => {
 
             'context' => '.',
-            'args' => { 'RUBY_VERSION' => ruby_version }
+            'args' => {
+              'RUBY_VERSION' => ruby_version,
+              'NODE_VERSION' => node_version,
+            }
           },
           'env_file' => ['.env'],
           'labels' => %W[
