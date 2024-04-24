@@ -83,11 +83,11 @@ class Deploy
   end
 
   def secret_key_base
-    SecureRandom.hex(32)
+    SecureRandom.hex(16)
   end
 
   def rails_master_key
-    SecureRandom.hex(128)
+    SecureRandom.hex(64)
   end
 
   def hostname
