@@ -1,15 +1,15 @@
-require "dotenv"
-require "securerandom"
-require "yaml"
+require 'dotenv'
+require 'securerandom'
+require 'yaml'
 
 class Deploy
-  DEPLOY_SERVER = ENV.fetch("DEPLOY_SERVER", nil)
-  IMAGE_REPOSITORY_PREFIX = ENV.fetch("IMAGE_REPOSITORY_PREFIX", nil)
+  DEPLOY_SERVER = ENV.fetch('DEPLOY_SERVER', nil)
+  IMAGE_REPOSITORY_PREFIX = ENV.fetch('IMAGE_REPOSITORY_PREFIX', nil)
   REQUIRED_ENVS = %w[HOSTNAME].freeze
   SUPPORTED_TASKS = %w[prepare build deploy].freeze
 
   def initialize
-    raise "Missing required ENV variables!" unless DEPLOY_SERVER && IMAGE_REPOSITORY_PREFIX
+    raise 'Missing required ENV variables!' unless DEPLOY_SERVER && IMAGE_REPOSITORY_PREFIX
   end
 
   def prepare
@@ -64,6 +64,11 @@ class Deploy
     @envs['RUBY_VERSION'] ||= ruby_version
     @envs['SECRET_KEY_BASE'] ||= secret_key_base
     @envs['RAILS_MASTER_KEY'] ||= rails_master_key
+    @envs['EXECJS_RUNTIME'] ||= execjs_runtime
+  end
+
+  def execjs_runtime
+    Disabled
   end
 
   def image
@@ -114,7 +119,7 @@ class Deploy
             'context' => '.',
             'args' => {
               'RUBY_VERSION' => ruby_version,
-              'NODE_VERSION' => node_version,
+              'NODE_VERSION' => node_version
             }
           },
           'env_file' => ['.env'],
