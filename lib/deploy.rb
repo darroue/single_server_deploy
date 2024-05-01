@@ -68,7 +68,7 @@ class Deploy
   end
 
   def execjs_runtime
-    Disabled
+    'Disabled'
   end
 
   def image
