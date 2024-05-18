@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.required_ruby_version = '3.3.0'
   s.name = 'single_server_deploy'
-  s.version = '0.1.0'
+  s.version = '0.1.1'
   s.summary = 'Single Server Deploy'
   s.description = 'This GEM allows you to build and deploy your application to preferred server based on few required ENVs'
   s.authors = ['Petr Radouš']
