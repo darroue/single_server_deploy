@@ -48,7 +48,7 @@ class Deploy
     load_envs unless @envs
 
     filename = "#{service}.docker-compose.yml"
-    File.binwrite(filename, service_compose_file(service).to_yaml)
+    File.binwrite(filename, service_compose_file(service).to_yaml.gsub('"', ''))
 
     system "ssh #{DEPLOY_SERVER} mkdir -p #{service}"
     system "scp #{filename} #{DEPLOY_SERVER}:~/#{service}"
