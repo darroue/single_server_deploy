@@ -117,7 +117,9 @@ class Deploy
   end
 
   def service_definitions
-    @service_definitions ||= YAML.load_file(SERVICE_DEFINITION_FILE)
+    return {} unless File.exist?(SERVICE_DEFINITION_FILE)
+
+    @service_definitions ||= YAML.load_file(SERVICE_DEFINITION_FILE).try(:[], :services) || {}
   end
 
   def services
