@@ -5,11 +5,12 @@ require 'yaml'
 class Deploy
   DEPLOY_SERVER = ENV.fetch('DEPLOY_SERVER', nil)
   IMAGE_REPOSITORY_PREFIX = ENV.fetch('IMAGE_REPOSITORY_PREFIX', nil)
+  SERVICE_DEFINITION_FILE = ENV.fetch('SERVICE_DEFINITION_FILE', nil)
   REQUIRED_ENVS = %w[HOSTNAME].freeze
-  SUPPORTED_TASKS = %w[prepare build deploy].freeze
+  SUPPORTED_TASKS = %w[prepare build deploy deploy_services].freeze
 
   def initialize
-    raise 'Missing required ENV variables!' unless DEPLOY_SERVER && IMAGE_REPOSITORY_PREFIX
+    raise 'Missing required ENV variables!' unless DEPLOY_SERVER && IMAGE_REPOSITORY_PREFIX && SERVICE_DEFINITION_FILE
   end
 
   def prepare
@@ -39,6 +40,22 @@ class Deploy
     system "ssh #{DEPLOY_SERVER} mkdir -p #{project_name}"
     system "scp .env docker-compose.yml #{DEPLOY_SERVER}:~/#{project_name}"
     system "ssh #{DEPLOY_SERVER} 'cd ~/#{project_name} && docker compose up -d --pull always'"
+  end
+
+  def deploy_services
+    services.map do |service|
+      deploy_service(service)
+    end
+  end
+
+  def deploy_service(service = ARGV.first)
+    return unless service
+
+    File.binwrite('docker-compose.yml', service_compose_file(service).to_yaml)
+
+    system "ssh #{DEPLOY_SERVER} mkdir -p #{service}"
+    system "scp docker-compose.yml #{DEPLOY_SERVER}:~/#{service}"
+    system "ssh #{DEPLOY_SERVER} 'cd ~/#{service} && docker compose up -d'"
   end
 
   private
@@ -99,8 +116,12 @@ class Deploy
     @envs['HOSTNAME']
   end
 
+  def service_definitions
+    @service_definitions ||= YAML.load_file(SERVICE_DEFINITION_FILE)
+  end
+
   def services
-    %w[web postgres doc_box]
+    @services ||= (service_definitions.keys & (@envs['SERVICES']&.split(',') || []))
   end
 
   def compose_file
@@ -137,6 +158,21 @@ class Deploy
             traefik.docker.network=web
           ],
           'networks' => services
+        }
+      }
+    }
+  end
+
+  def service_compose_file(service) # rubocop:disable Metrics/MethodLength
+    service_definition = service_definitions[service]
+
+    {
+      'networks' => { service => { 'external' => true } },
+      'volumes' => { service => { 'external' => true } },
+      'services' => {
+        service => {
+          **service_definition,
+          'networks' => [services]
         }
       }
     }
