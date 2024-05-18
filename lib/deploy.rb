@@ -7,7 +7,7 @@ class Deploy
   IMAGE_REPOSITORY_PREFIX = ENV.fetch('IMAGE_REPOSITORY_PREFIX', nil)
   SERVICE_DEFINITION_FILE = ENV.fetch('SERVICE_DEFINITION_FILE', nil)
   REQUIRED_ENVS = %w[HOSTNAME].freeze
-  SUPPORTED_TASKS = %w[prepare build deploy deploy_services].freeze
+  SUPPORTED_TASKS = %w[prepare build deploy deploy_services deploy_service].freeze
 
   def initialize
     raise 'Missing required ENV variables!' unless DEPLOY_SERVER && IMAGE_REPOSITORY_PREFIX && SERVICE_DEFINITION_FILE
