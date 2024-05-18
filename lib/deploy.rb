@@ -6,7 +6,7 @@ class Deploy
   DEPLOY_SERVER = ENV.fetch('DEPLOY_SERVER', nil)
   IMAGE_REPOSITORY_PREFIX = ENV.fetch('IMAGE_REPOSITORY_PREFIX', nil)
   SERVICE_DEFINITION_FILE = ENV.fetch('SERVICE_DEFINITION_FILE', nil)
-  REQUIRED_ENVS = %w[HOSTNAME].freeze
+  REQUIRED_ENVS = %w[HOSTNAME SERVICES].freeze
   SUPPORTED_TASKS = %w[prepare build deploy deploy_services deploy_service].freeze
 
   def initialize
@@ -14,13 +14,7 @@ class Deploy
   end
 
   def prepare
-    @envs = Dotenv.parse('.env', '.env.production')
-
-    set_envs
-
-    (@envs.keys + REQUIRED_ENVS).each do |env|
-      raise "ENV #{env} is empty!" unless @envs[env] != ''
-    end
+    load_envs
 
     File.binwrite('.env', @envs.map do |key, value|
       "#{key}=#{value}"
@@ -48,17 +42,30 @@ class Deploy
     end
   end
 
-  def deploy_service(service = ARGV.first)
+  def deploy_service(service = ARGV[1])
     return unless service
 
-    File.binwrite('docker-compose.yml', service_compose_file(service).to_yaml)
+    load_envs unless @envs
+
+    filename = "#{service}.docker-compose.yml"
+    File.binwrite(filename, service_compose_file(service).to_yaml)
 
     system "ssh #{DEPLOY_SERVER} mkdir -p #{service}"
-    system "scp docker-compose.yml #{DEPLOY_SERVER}:~/#{service}"
-    system "ssh #{DEPLOY_SERVER} 'cd ~/#{service} && docker compose up -d'"
+    system "scp #{filename} #{DEPLOY_SERVER}:~/#{service}"
+    system "ssh #{DEPLOY_SERVER} 'cd ~/#{service} && docker compose -f #{filename} up -d'"
   end
 
   private
+
+  def load_envs
+    @envs = Dotenv.parse('.env', '.env.production')
+
+    set_envs
+
+    (@envs.keys + REQUIRED_ENVS).each do |env|
+      raise "ENV #{env} is empty!" if @envs[env].nil? || @envs[env].strip == ''
+    end
+  end
 
   def project_name
     @project_name ||= File.basename(Dir.pwd)
@@ -119,11 +126,11 @@ class Deploy
   def service_definitions
     return {} unless File.exist?(SERVICE_DEFINITION_FILE)
 
-    @service_definitions ||= YAML.load_file(SERVICE_DEFINITION_FILE).try(:[], :services) || {}
+    @service_definitions ||= YAML.load_file(SERVICE_DEFINITION_FILE)['services'] || {}
   end
 
   def services
-    @services ||= (service_definitions.keys & (@envs['SERVICES']&.split(',') || []))
+    @services ||= (service_definitions.keys & @envs['SERVICES'].split(','))
   end
 
   def compose_file
@@ -174,7 +181,7 @@ class Deploy
       'services' => {
         service => {
           **service_definition,
-          'networks' => [services]
+          'networks' => [service]
         }
       }
     }
