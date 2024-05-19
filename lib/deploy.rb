@@ -37,6 +37,8 @@ class Deploy
   end
 
   def deploy_services
+    load_envs unless @envs
+
     services.map do |service|
       deploy_service(service)
     end
