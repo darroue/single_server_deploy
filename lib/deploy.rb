@@ -157,14 +157,14 @@ class Deploy
             traefik.enable=true
             traefik.http.middlewares.#{project_name}-redirectscheme.redirectscheme.permanent=true
             traefik.http.middlewares.#{project_name}-redirectscheme.redirectscheme.scheme=https
-            traefik.http.routers.#{project_name}-http.entrypoints=web
+            traefik.http.routers.#{project_name}-http.entrypoints=proxy
             traefik.http.routers.#{project_name}-http.middlewares=#{project_name}-redirectscheme@docker
             traefik.http.routers.#{project_name}-http.rule=Host(`#{hostname}`,`www.#{hostname}`)
             traefik.http.routers.#{project_name}-https.entrypoints=websecure
             traefik.http.routers.#{project_name}-https.rule=Host(`#{hostname}`,`www.#{hostname}`)
             traefik.http.routers.#{project_name}-https.tls=true
             traefik.http.routers.#{project_name}-https.tls.certresolver=letsencrypt
-            traefik.docker.network=web
+            traefik.docker.network=proxy
           ],
           'networks' => services
         }
