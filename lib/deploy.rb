@@ -88,13 +88,9 @@ class Deploy
     @envs['POSTGRES_PASSWORD'] ||= postgres_password
     @envs['IMAGE'] ||= image
     @envs['RUBY_VERSION'] ||= ruby_version
+    @envs['NODE_VERSION'] ||= node_version
     @envs['SECRET_KEY_BASE'] ||= secret_key_base
     @envs['RAILS_MASTER_KEY'] ||= rails_master_key
-    @envs['EXECJS_RUNTIME'] ||= execjs_runtime
-  end
-
-  def execjs_runtime
-    'Disabled'
   end
 
   def image
@@ -144,17 +140,20 @@ class Deploy
       'services' => {
         'web' =>
         {
-          'image' => image,
+          'image' => @envs['IMAGE'],
           'restart' => 'always',
           'build' => {
 
             'context' => '.',
             'args' => {
-              'RUBY_VERSION' => ruby_version,
-              'NODE_VERSION' => node_version
+              'RUBY_VERSION' => @envs['RUBY_VERSION'],
+              'NODE_VERSION' => @envs['NODE_VERSION']
             }
           },
           'env_file' => ['.env'],
+          'env' => {
+            'EXECJS_RUNTIME' => 'Disabled'
+          },
           'labels' => %W[
             traefik.enable=true
             traefik.http.middlewares.#{project_name}-redirectscheme.redirectscheme.permanent=true
