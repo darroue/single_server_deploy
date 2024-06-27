@@ -151,7 +151,7 @@ class Deploy
             }
           },
           'env_file' => ['.env'],
-          'env' => {
+          'environment' => {
             'EXECJS_RUNTIME' => 'Disabled'
           },
           'labels' => %W[
