@@ -70,7 +70,7 @@ class Deploy
   end
 
   def project_name
-    @project_name ||= File.basename(Dir.pwd)
+    @project_name ||= ENV.fetch('PROJECT_NAME', File.basename(Dir.pwd))
   end
 
   def ruby_version
