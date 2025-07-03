@@ -8,6 +8,17 @@ class Deploy
   SERVICE_DEFINITION_FILE = ENV.fetch('SERVICE_DEFINITION_FILE', nil)
   REQUIRED_ENVS = %w[HOSTNAME SERVICES].freeze
   SUPPORTED_TASKS = %w[prepare build deploy deploy_services deploy_service].freeze
+  ENV_KEYS = %w[
+    PROJECT_NAME
+    POSTGRES_DB
+    POSTGRES_USER
+    POSTGRES_PASSWORD
+    IMAGE
+    RUBY_VERSION
+    NODE_VERSION
+    SECRET_KEY_BASE
+    RAILS_MASTER_KEY
+  ]
 
   def initialize
     load_envs
@@ -16,8 +27,8 @@ class Deploy
   end
 
   def prepare
-    File.binwrite('.env', @envs.map do |key, value|
-      "#{key}=#{value}"
+    File.binwrite('.env', ENV_KEYS.map do |key|
+      "#{key}=#{ENV[key]}"
     end.join("\n"))
     File.binwrite('docker-compose.yml', compose_file.to_yaml)
   end
@@ -56,14 +67,14 @@ class Deploy
   private
 
   def load_envs
-    return if @envs
+    return if ENV
 
-    @envs = Dotenv.parse('.env', '.env.production')
+    Dotenv.overwrite(Dir.pwd + '/.env', Dir.pwd + '.env.production')
 
     set_envs
 
-    (@envs.keys + REQUIRED_ENVS).each do |env|
-      raise "ENV #{env} is empty!" if @envs[env].nil? || @envs[env].strip == ''
+    REQUIRED_ENVS.each do |env|
+      raise "ENV #{env} is empty!" if ENV[env].nil? || ENV[env].strip == ''
     end
   end
 
@@ -80,15 +91,15 @@ class Deploy
   end
 
   def set_envs
-    @envs['PROJECT_NAME'] ||= project_name
-    @envs['POSTGRES_DB'] ||= postgres_db
-    @envs['POSTGRES_USER'] ||= postgres_user
-    @envs['POSTGRES_PASSWORD'] ||= postgres_password
-    @envs['IMAGE'] ||= image
-    @envs['RUBY_VERSION'] ||= ruby_version
-    @envs['NODE_VERSION'] ||= node_version
-    @envs['SECRET_KEY_BASE'] ||= secret_key_base
-    @envs['RAILS_MASTER_KEY'] ||= rails_master_key
+    ENV['PROJECT_NAME'] ||= project_name
+    ENV['POSTGRES_DB'] ||= postgres_db
+    ENV['POSTGRES_USER'] ||= postgres_user
+    ENV['POSTGRES_PASSWORD'] ||= postgres_password
+    ENV['IMAGE'] ||= image
+    ENV['RUBY_VERSION'] ||= ruby_version
+    ENV['NODE_VERSION'] ||= node_version
+    ENV['SECRET_KEY_BASE'] ||= secret_key_base
+    ENV['RAILS_MASTER_KEY'] ||= rails_master_key
   end
 
   def image
@@ -116,7 +127,7 @@ class Deploy
   end
 
   def hostname
-    @envs['HOSTNAME']
+    ENV['HOSTNAME']
   end
 
   def service_definitions
@@ -126,7 +137,7 @@ class Deploy
   end
 
   def services
-    @services ||= (service_definitions.keys & @envs['SERVICES'].split(','))
+    @services ||= (service_definitions.keys & ENV['SERVICES'].split(','))
   end
 
   def compose_file
@@ -138,14 +149,14 @@ class Deploy
       'services' => {
         'web' =>
         {
-          'image' => @envs['IMAGE'],
+          'image' => ENV['IMAGE'],
           'restart' => 'always',
           'build' => {
 
             'context' => '.',
             'args' => {
-              'RUBY_VERSION' => @envs['RUBY_VERSION'],
-              'NODE_VERSION' => @envs['NODE_VERSION']
+              'RUBY_VERSION' => ENV['RUBY_VERSION'],
+              'NODE_VERSION' => ENV['NODE_VERSION']
             }
           },
           'env_file' => ['.env'],
