@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    single_server_deploy (0.3.13)
+    single_server_deploy (0.3.18)
       dotenv
       securerandom
       yaml

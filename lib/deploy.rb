@@ -18,6 +18,7 @@ class Deploy
     NODE_VERSION
     SECRET_KEY_BASE
     RAILS_MASTER_KEY
+    HOSTNAME
   ]
 
   def initialize
@@ -67,9 +68,7 @@ class Deploy
   private
 
   def load_envs
-    return if ENV
-
-    Dotenv.overwrite(Dir.pwd + '/.env', Dir.pwd + '.env.production')
+    Dotenv.overwrite(Dir.pwd + '/.env', Dir.pwd + '/.env.production')
 
     set_envs
 
