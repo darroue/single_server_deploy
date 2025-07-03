@@ -10,12 +10,12 @@ class Deploy
   SUPPORTED_TASKS = %w[prepare build deploy deploy_services deploy_service].freeze
 
   def initialize
+    load_envs
+
     raise 'Missing required ENV variables!' unless DEPLOY_SERVER && IMAGE_REPOSITORY_PREFIX && SERVICE_DEFINITION_FILE
   end
 
   def prepare
-    load_envs
-
     File.binwrite('.env', @envs.map do |key, value|
       "#{key}=#{value}"
     end.join("\n"))
@@ -37,8 +37,6 @@ class Deploy
   end
 
   def deploy_services
-    load_envs unless @envs
-
     services.map do |service|
       deploy_service(service)
     end
@@ -46,8 +44,6 @@ class Deploy
 
   def deploy_service(service = ARGV[1])
     return unless service
-
-    load_envs unless @envs
 
     filename = "#{service}.docker-compose.yml"
     File.binwrite(filename, service_compose_file(service).to_yaml.gsub('"', ''))
@@ -60,6 +56,8 @@ class Deploy
   private
 
   def load_envs
+    return if @envs
+
     @envs = Dotenv.parse('.env', '.env.production')
 
     set_envs
@@ -70,7 +68,7 @@ class Deploy
   end
 
   def project_name
-    @project_name ||= ENV.fetch('PROJECT_NAME', File.basename(Dir.pwd))
+    ENV.fetch('PROJECT_NAME')
   end
 
   def ruby_version
